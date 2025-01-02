@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "crud_function_handler.h"
+#include "http.h"
 
 typedef struct 
 {
@@ -74,19 +75,21 @@ start_listening()
             continue;
         }
 
-        pthread_t th_id;
+        router_request(requester_fd, requester, requester_len);
+
+        /*pthread_t th_id;
         pthread_create(&th_id, NULL, handle_request, requester_fd);
-        pthread_detach(th_id);
+        pthread_detach(th_id);*/
     }
 
 }
 
-static void *
-handle_request()
+static void
+route_requeste(int *client_fd, struct sockaddr_in client, socklen_t len)
 {
 
-
 }
+
 
 
 
