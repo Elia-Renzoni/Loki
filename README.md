@@ -1,2 +1,2 @@
 # Loki
-Make C Great Again (In Web Development)
+Framework for build powerful and scalable RESTful API in pure C.
