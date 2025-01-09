@@ -5,7 +5,8 @@
  */
 
 #include "http.h"
-
+#include <stdlib.h>
+#include <string.h>
 
 typedef struct crud
 {
@@ -27,4 +28,19 @@ handle(const char crud_method[], const char endpoint[], void (*method) (http_req
    crud_operation->method = method;
    crud_operation->next = *top;
    *top = crud_operation;
+}
+
+crud_t *
+search_for_task(const char api_endpoint[])
+{
+    for (crud_t *node = *top; (node != NULL); node = (*top)->next)
+    {
+        int cmp_result = strcmp(api_endpoint, node->api_endpoint);
+        if (cmp_result)
+        { 
+            return node;
+        }   
+    }
+
+    return NULL;
 }

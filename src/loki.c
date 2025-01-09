@@ -85,7 +85,7 @@ start_listening()
 }
 
 static void
-route_requeste(int *client_fd, struct sockaddr_in client, socklen_t len)
+route_request(int *client_fd, struct sockaddr_in client, socklen_t len)
 {
 
 }
