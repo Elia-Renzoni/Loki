@@ -12,7 +12,6 @@ typedef struct
     body_t body;
     char *host;
     char *pattern;
-
 } http_request_t;
 
 
@@ -24,7 +23,8 @@ typedef struct
 
 typedef struct
 {
-
+    char *endpoints;
+    struct query_map map[20];
 } url_t;
 
 typedef struct
@@ -36,3 +36,10 @@ typedef struct
 {
 
 } body_t;
+
+
+struct query_map
+{
+    char *key, 
+          *value;
+};
