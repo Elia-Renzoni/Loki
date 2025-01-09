@@ -24,7 +24,7 @@ typedef struct
 typedef struct
 {
     char *endpoints;
-    struct query_map map[20];
+    query_map_t map[20];
 } url_t;
 
 typedef struct
@@ -38,8 +38,8 @@ typedef struct
 } body_t;
 
 
-struct query_map
+typedef struct
 {
     char *key, 
           *value;
-};
+} query_map_t;

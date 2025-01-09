@@ -63,10 +63,10 @@ token_processor(char token[], int cycle, http_request_t *request)
             if (index == 0)
                 strcpy(request->crud_method, zero_cycle_token); 
             else if (index == 1)
-                // TODO
-                // request->url = 
+                request->url = get_url_from_request(zero_cycle_token);
             zero_cycle_token = strtok(NULL, " ");
         }
+        break;
     }
 
 
@@ -104,17 +104,20 @@ static void
 parse_query(char *query_to_parse, url_t *url)
 {
     char c;
-    int i;
+    int i = 0;
+    
+    url->map = (query_map_t *) calloc(sizeof(query_map_t), 20);
 
     char *and_splitted = strtok(query_to_parse, "&");
     while (and_splitted != NULL)
     {
-        for (int i = 0; i < 2; i++)
-        {
-            /*for (i = 0, c = and_splitted[i];
-                  (c != '=');)*/
-        }
-        and_splitted = strtok(NULL, "&");
-    }
+        char *key = strtok(and_splitted, "=");
+        char *value = strtok(NULL, "=");
 
+        url->map[i].key = key;
+        url->map[i].value = value; 
+        
+        and_splitted = strtok(NULL, "&");
+        i++;
+    }
 }
