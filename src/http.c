@@ -24,7 +24,7 @@ typedef struct
 typedef struct
 {
     char *endpoints;
-    query_map_t map[20];
+    query_map_t *map;
 } url_t;
 
 typedef struct
