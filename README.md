@@ -2,23 +2,34 @@
 Linux Container Runtime for Fun and Profit
 
 ## Command Line Arguments
+* container image:
 ```bash
-loki create-image --path=<project path> \
-                  --dir=<working dir> \
-                  --run=<command> \
-                  --run=<command> \
-                  ...
-                  --cmd=<exec>
+loki create --name=pyapp \
+  --run="pip install flask" \
+  --copy=./src:/app \
+  --workdir=/app \
+  --expose=5000 \
+  --cmd="python main.py"
 ```
 
+* run a container:
 ```bash
-loki build
+loki run -d \
+  --name=myapp \
+  -e=DB_HOST=localhost \
+  -e=DB_PORT=5432 \
+  -v=/data:/app/data \
+  -p=8080:80 \
+  -w=/app \
+  webapp:v1
 ```
 
+* simple management:
 ```bash
-loki run --name=<container-name>
+loki ps
+loki start myapp
+loki stop myapp
+loki rm myapp
+loki images
 ```
 
-```bash
-loki stop --name=<container-name>
-```
