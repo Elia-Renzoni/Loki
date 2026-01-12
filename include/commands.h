@@ -6,3 +6,15 @@ struct cmd {
     callback handler;
     char *description;
 };
+
+struct Image {
+    char *imageName;
+    char *scripts;
+    char *copyDir;
+    char *workDir;
+    int port;
+    char *cmd;
+};
+
+struct Container {
+};
