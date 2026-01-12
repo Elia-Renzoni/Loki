@@ -3,19 +3,6 @@
 #include <stdlib.h>
 #include "handlers.h"
 
-struct LexerContext {
-    char *action;
-    char *validatedTokens;
-    bool *err;
-};
-
-// TODO-> union must contains an option of command structs
-struct ParserContext {
-    bool *err;
-    union Action {
-    };
-};
-
 bool isActionLegit(const char *);
 bool isLoki(const char *);
 struct ParserContext *startParsing(struct LexerContext *);
