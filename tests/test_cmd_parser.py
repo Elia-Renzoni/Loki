@@ -1,4 +1,4 @@
-from src.loki import cmd_parser as parser
+from loki import cmd_parser as parser
 import unittest
 
 class TestParser(unittest.TestCase):

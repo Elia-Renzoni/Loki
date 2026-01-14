@@ -1,5 +1,5 @@
 import argparse
-from src.loki import commands
+from loki import commands
 
 class ParserContext:
     def __init__(self, namespace):
