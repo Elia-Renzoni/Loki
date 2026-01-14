@@ -1,5 +1,5 @@
 import sys
-import cmd_parser as parser
+from loki import cmd_parser as parser
 import os
 
 def loki_start(argv=None):

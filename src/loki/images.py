@@ -40,3 +40,6 @@ class Image:
 
     def get_image_cmds(self):
         return self.image_cmds
+
+    def get_image_scripts(self):
+        return self.get_image_scripts

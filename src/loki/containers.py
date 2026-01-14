@@ -19,10 +19,10 @@ class Containers:
     def fill_container(self, value, cmd):
         match cmd:
             case "-r":
-                pass
+                self.container_runs.add(value)
             case "-v":
-                pass
+                self.container_envs.add(value)
             case "-w":
                 pass
             case "-name":
-                pass
+                self.container_ports.add(value)
