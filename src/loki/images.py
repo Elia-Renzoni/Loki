@@ -34,3 +34,9 @@ class Image:
                 self.image_ports.add(value)
             case "--cmd":
                 self.image_cmds.add(value)
+
+    def get_image_name(self):
+        return self.image_name
+
+    def get_image_cmds(self):
+        return self.image_cmds
