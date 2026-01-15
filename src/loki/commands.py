@@ -14,7 +14,7 @@ def get_build_subcommands():
     return [
             "--name",
             "--run",
-            "--port",
+            "--expose",
             "--copy",
             "--workdir",
             "--cmd"

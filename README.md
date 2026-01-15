@@ -4,7 +4,7 @@ Linux Container Runtime for Fun and Profit
 ## Command Line Arguments
 * container image:
 ```bash
-loki create --name=pyapp \
+loki build --name=pyapp \
   --run="pip install flask" \
   --copy=./src:/app \
   --workdir=/app \

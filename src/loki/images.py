@@ -15,7 +15,7 @@ class Image:
 
     def compile_image(self):
         for exp_cmd in self.expected_commands:
-           if self.context[exp_cmd] is True: 
+           if exp_cmd in self.context: 
                self.fill_image_fields(exp_cmd, self.context[exp_cmd])
 
     def fill_image_fields(self, cmd, value):
@@ -34,6 +34,8 @@ class Image:
                 self.image_ports.add(value)
             case "--cmd":
                 self.image_cmds.add(value)
+            case _:
+                raise Exception
 
     def get_image_name(self):
         return self.image_name
@@ -43,3 +45,15 @@ class Image:
 
     def get_image_scripts(self):
         return self.get_image_scripts
+
+    def get_image_copy_targets(self):
+        return self.image_copy
+
+    def get_image_workdir(self):
+        return self.image_workdir
+
+    def get_image_entrypoints(self):
+        return self.image_entrypoint
+
+    def get_image_ports(self):
+        return self.image_ports

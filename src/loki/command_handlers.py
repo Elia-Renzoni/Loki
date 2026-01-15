@@ -10,14 +10,15 @@ def read_command(context):
     else:
         return command.Command(context)
 
-def select_handler(command_obj):
+def exec(command_obj):
+    execution_res = None
     if command_obj is images.Image:
-        create_image(command_obj)
+        execution_res = create_image(command_obj)
     elif command_obj is containers.Containers:
-        create_container(command_obj)
+        execution_res = create_container(command_obj)
     else:
-        create_command(command_obj)
-
+        execution_res = create_command(command_obj)
+    return execution_res
 
 def create_image(cmd):
     pass

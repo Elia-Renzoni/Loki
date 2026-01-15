@@ -8,7 +8,7 @@ class Containers:
         self.container_envs = set()
         self.container_runs = set()
         self.container_name = None
-        self.container_ports = None
+        self.container_ports = set()
 
     def compile_container(self):
         for exp_cmd in self.expected_commands:
