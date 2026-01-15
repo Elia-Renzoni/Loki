@@ -24,12 +24,12 @@ class TestImages(unittest.TestCase):
         img = images.Image(context.get_context())
         img.compile_image()
 
-        self.assertEqual(img.get_image_name(), None)
-        self.assertEqual(img.get_image_workdir(), set().add("/app"))
-        self.assertEqual(img.get_image_scripts(), set().add("pip install flask"))
-        self.assertEqual(img.get_image_cmds(), set().add("python app.py"))
-        self.assertEqual(img.get_image_copy_targets(), set().add("./src/app"))
-        self.assertEqual(img.get_image_ports(), set().add("6060"))
+        self.assertEqual(img.get_image_name(), "pyapp")
+        self.assertEqual(img.get_image_workdir(), {"/app"})
+        self.assertEqual(img.get_image_scripts(), {"pip install flask"})
+        self.assertEqual(img.get_image_cmds(), {"python app.py"})
+        self.assertEqual(img.get_image_copy_targets(), {"./src/app"})
+        self.assertEqual(img.get_image_ports(),{"6060"})
 
 
 if __name__ == '__main__':
