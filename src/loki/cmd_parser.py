@@ -23,6 +23,8 @@ def parse_commands(args):
     for cmd, subcmd in cmd_lookup.items():
         if subcmd is None:
             sub = subparser.add_parser(cmd)
+            if cmd == "start" or cmd == "stop":
+                sub.add_argument("target")
             continue
 
         sub = subparser.add_parser(cmd)

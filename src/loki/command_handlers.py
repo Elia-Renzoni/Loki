@@ -8,7 +8,7 @@ def read_command(context):
     elif context['run'] is True:
         return containers.Containers(context)
     else:
-        return command.Command(context)
+        return command.ManagementCommand(context)
 
 def exec(command_obj):
     execution_res = None
