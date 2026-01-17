@@ -1,31 +1,37 @@
+"""Command and subcommand definitions for Loki CLI."""
+
 
 def build_commands_lookup():
-    commands_lookup = dict()
-    commands_lookup["build"] = get_build_subcommands()
-    commands_lookup["run"] = get_run_subcommands()
-    commands_lookup["ps"] = None
-    commands_lookup["start"] = None
-    commands_lookup["stop"] = None
-    commands_lookup["images"] = None
-    commands_lookup["rm"] = None
+    """Return a lookup table for supported commands and subcommands."""
+    return {
+        "build": get_build_subcommands(),
+        "run": get_run_subcommands(),
+        "ps": None,
+        "start": None,
+        "stop": None,
+        "images": None,
+        "rm": None,
+    }
 
-    return commands_lookup
 
 def get_build_subcommands():
+    """Return supported subcommands for the build command."""
     return [
-            "--name",
-            "--run",
-            "--expose",
-            "--copy",
-            "--workdir",
-            "--cmd"
+        "--name",
+        "--run",
+        "--expose",
+        "--copy",
+        "--workdir",
+        "--cmd",
     ]
 
+
 def get_run_subcommands():
+    """Return supported subcommands for the run command."""
     return [
-            "--name",
-            "--env",
-            "--mount",
-            "--port",
+        "--name",
+        "--env",
+        "--mount",
+        "--port",
     ]
-    
+

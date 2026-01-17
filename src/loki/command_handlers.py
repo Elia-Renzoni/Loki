@@ -1,31 +1,46 @@
+"""Command dispatch and execution logic for Loki."""
+
 from loki import images
 from loki import containers
 from loki import command
 
-def read_command(context):
-    if context['build'] is True:
-        return images.Image(context)
-    elif context['run'] is True:
-        return containers.Containers(context)
-    else:
-        return command.ManagementCommand(context)
 
-def exec(command_obj):
-    execution_res = None
-    if command_obj is images.Image:
-        execution_res = create_image(command_obj)
-    elif command_obj is containers.Containers:
-        execution_res = create_container(command_obj)
-    else:
-        execution_res = create_command(command_obj)
-    return execution_res
+def read_command(context):
+    """Create the appropriate command object based on parsed context."""
+    if context.get("build") is True:
+        return images.Image(context)
+
+    if context.get("run") is True:
+        return containers.Containers(context)
+
+    return command.ManagementCommand(context)
+
+
+def execute(command_obj):
+    """Execute the given command object."""
+    if isinstance(command_obj, images.Image):
+        return create_image(command_obj)
+
+    if isinstance(command_obj, containers.Containers):
+        return create_container(command_obj)
+
+    return create_command(command_obj)
+
 
 def create_image(cmd):
-    pass
+    """Execute image build command."""
+    # TODO: implement image build logic
+    return None
+
 
 def create_container(cmd):
-    pass
+    """Execute container run command."""
+    # TODO: implement container runtime logic
+    return None
+
 
 def create_command(cmd):
-    pass
+    """Execute management command."""
+    # TODO: implement management command logic
+    return None
 

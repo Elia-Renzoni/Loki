@@ -1,43 +1,69 @@
+"""
+CLI argument parser for Loki.
+
+This module defines the command-line interface and returns
+a ParserContext containing the parsed arguments.
+"""
+
 import argparse
+
 from loki import commands
 
+
 class ParserContext:
+    """Wrapper around argparse Namespace."""
+
     def __init__(self, namespace):
+        """Initialize parser context from argparse namespace."""
         self.context = vars(namespace)
-    
+
     def is_context_none(self):
-        return self.context is None
+        """Return True if context is empty."""
+        return not self.context
 
     def get_context(self):
+        """Return parsed context as dictionary."""
         return self.context
 
+
 def parse_commands(args):
+    """
+    Parse CLI arguments and return a ParserContext instance.
+    """
     parser = argparse.ArgumentParser()
-    subparser = parser.add_subparsers(
-            dest="commands", 
-            required=True
+    subparsers = parser.add_subparsers(
+        dest="command",
+        required=True,
     )
 
     cmd_lookup = commands.build_commands_lookup()
-    sub = None
-    for cmd, subcmd in cmd_lookup.items():
-        if subcmd is None:
-            sub = subparser.add_parser(cmd)
-            if cmd == "start" or cmd == "stop":
-                sub.add_argument("target")
+
+    for cmd, subcmds in cmd_lookup.items():
+        subparser = subparsers.add_parser(cmd)
+
+        # Commands without subcommands (e.g. ps, images, rm)
+        if subcmds is None:
+            if cmd in ("start", "stop"):
+                subparser.add_argument("target")
             continue
 
-        sub = subparser.add_parser(cmd)
-        for command in subcmd:
-            if command == "--env" or command == "--run" or command == "--expose" or command == "--port" or command == "--copy" or command == "--cmd":
-                sub.add_argument(
-                        command,
-                        action="append",
+        # Commands with options
+        for option in subcmds:
+            if option in {
+                "--env",
+                "--run",
+                "--expose",
+                "--port",
+                "--copy",
+                "--cmd",
+            }:
+                subparser.add_argument(
+                    option,
+                    action="append",
                 )
-                continue
-
-            sub.add_argument(command)
-    
+            else:
+                subparser.add_argument(option)
 
     result = parser.parse_args(args)
     return ParserContext(result)
+
