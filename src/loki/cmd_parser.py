@@ -29,7 +29,15 @@ def parse_commands(args):
 
         sub = subparser.add_parser(cmd)
         for command in subcmd:
+            if command == "--env" or command == "--run" or command == "--expose" or command == "--port" or command == "--copy" or command == "--cmd":
+                sub.add_argument(
+                        command,
+                        action="append",
+                )
+                continue
+
             sub.add_argument(command)
+    
 
     result = parser.parse_args(args)
     return ParserContext(result)

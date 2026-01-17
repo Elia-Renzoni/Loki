@@ -5,24 +5,39 @@ class Containers:
         self.lookup = cmds.build_commands_lookup()
         self.expected_commands = self.lookup['run']
         self.context = context
-        self.container_envs = set()
-        self.container_runs = set()
+        self.container_envs = list()
+        self.container_mount = None
         self.container_name = None
-        self.container_ports = set()
+        self.container_ports = list()
 
     def compile_container(self):
         for exp_cmd in self.expected_commands:
-            if self.context[exp_cmd] is True:
-                self.fill_container(self.context[exp_cmd], exp_cmd)
+            key = exp_cmd.lstrip("-")
+            value = self.context.get(key)
+            print(value)
 
+            if value is not None:
+                self.fill_container_fields(value, exp_cmd)
 
-    def fill_container(self, value, cmd):
+    def fill_container_fields(self, value, cmd):
         match cmd:
-            case "-r":
-                self.container_runs.add(value)
-            case "-v":
-                self.container_envs.add(value)
-            case "-w":
-                pass
-            case "-name":
-                self.container_ports.add(value)
+            case "--env":
+                self.container_envs = value
+            case "--mount":
+                self.container_mount = value
+            case "--name":
+                self.container_name = value
+            case "--port":
+                self.container_ports = value
+
+    def get_container_name(self):
+        return self.container_name
+
+    def get_container_envs(self):
+        return self.container_envs
+
+    def get_container_mount(self):
+        return self.container_mount
+
+    def get_container_ports(self):
+        return self.container_ports

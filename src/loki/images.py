@@ -6,11 +6,11 @@ class Image:
         self.expected_commands = cmds.build_commands_lookup()["build"]
 
         self.image_name = None
-        self.image_scripts = set()
-        self.image_workdir = set()
-        self.image_copy = set()
-        self.image_ports = set()
-        self.image_cmds = set()
+        self.image_scripts = list()
+        self.image_workdir = None
+        self.image_copy = list()
+        self.image_ports = list()
+        self.image_cmds = list()
 
     def compile_image(self):
         for exp_cmd in self.expected_commands:
@@ -31,15 +31,15 @@ class Image:
             case "--name":
                 self.image_name = value
             case "--run":
-                self.image_scripts.add(value)
+                self.image_scripts = value
             case "--copy":
-                self.image_copy.add(value)
+                self.image_copy = value
             case "--workdir":
-                self.image_workdir.add(value)
+                self.image_workdir = value
             case "--expose":
-                self.image_ports.add(value)
+                self.image_ports = value
             case "--cmd":
-                self.image_cmds.add(value)
+                self.image_cmds = value
 
     def get_image_name(self):
         return self.image_name
