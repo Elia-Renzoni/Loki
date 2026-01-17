@@ -1,6 +1,6 @@
+import unittest
 from loki import containers as cnt
 from loki import cmd_parser as parser
-import unittest
 
 
 class TestContainers(unittest.TestCase):

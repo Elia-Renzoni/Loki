@@ -1,5 +1,5 @@
 import unittest
-from loki import images 
+from loki import images
 from loki import cmd_parser as parser
 
 
@@ -28,9 +28,8 @@ class TestImages(unittest.TestCase):
         self.assertEqual(img.get_image_scripts(), ["'pip install flask'"])
         self.assertEqual(img.get_image_cmds(), ["python app.py"])
         self.assertEqual(img.get_image_copy_targets(), ["./src/app"])
-        self.assertEqual(img.get_image_ports(),["6060"])
+        self.assertEqual(img.get_image_ports(), ["6060"])
 
 
 if __name__ == '__main__':
     unittest.main()
-        

@@ -1,25 +1,33 @@
+"""Container runtime logic for Loki."""
+
 from loki import commands as cmds
 
+
 class Containers:
+    """Represents a container runtime configuration."""
+
     def __init__(self, context):
-        self.lookup = cmds.build_commands_lookup()
-        self.expected_commands = self.lookup['run']
+        """Initialize container configuration from CLI context."""
         self.context = context
-        self.container_envs = list()
+        self.lookup = cmds.build_commands_lookup()
+        self.expected_commands = self.lookup["run"]
+
+        self.container_envs = []
         self.container_mount = None
         self.container_name = None
-        self.container_ports = list()
+        self.container_ports = []
 
     def compile_container(self):
+        """Compile container configuration from CLI context."""
         for exp_cmd in self.expected_commands:
             key = exp_cmd.lstrip("-")
             value = self.context.get(key)
-            print(value)
 
             if value is not None:
-                self.fill_container_fields(value, exp_cmd)
+                self._fill_container_fields(exp_cmd, value)
 
-    def fill_container_fields(self, value, cmd):
+    def _fill_container_fields(self, cmd, value):
+        """Dispatch command values to container fields."""
         match cmd:
             case "--env":
                 self.container_envs = value
@@ -31,13 +39,18 @@ class Containers:
                 self.container_ports = value
 
     def get_container_name(self):
+        """Return container name."""
         return self.container_name
 
     def get_container_envs(self):
+        """Return container environment variables."""
         return self.container_envs
 
     def get_container_mount(self):
+        """Return container mount path."""
         return self.container_mount
 
     def get_container_ports(self):
+        """Return container port mappings."""
         return self.container_ports
+

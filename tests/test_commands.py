@@ -1,5 +1,5 @@
-from loki import commands
 import unittest
+from loki import commands
 
 class TestCommands(unittest.TestCase):
 
