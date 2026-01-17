@@ -4,7 +4,7 @@ Linux Container Runtime for Fun and Profit
 ## Command Line Arguments
 * container image:
 ```bash
-loki create --name=pyapp \
+loki build --name=pyapp \
   --run="pip install flask" \
   --copy=./src:/app \
   --workdir=/app \
@@ -14,14 +14,12 @@ loki create --name=pyapp \
 
 * run a container:
 ```bash
-loki run -d \
+loki run --d \
   --name=myapp \
-  -e=DB_HOST=localhost \
-  -e=DB_PORT=5432 \
-  -v=/data:/app/data \
-  -p=8080:80 \
-  -w=/app \
-  webapp:v1
+  --env=DB_HOST=localhost \
+  --env=DB_PORT=5432 \
+  --mount=/data:/app/data \
+  --port=8080:80 \
 ```
 
 * simple management:

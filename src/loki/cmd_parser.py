@@ -23,11 +23,21 @@ def parse_commands(args):
     for cmd, subcmd in cmd_lookup.items():
         if subcmd is None:
             sub = subparser.add_parser(cmd)
+            if cmd == "start" or cmd == "stop":
+                sub.add_argument("target")
             continue
 
         sub = subparser.add_parser(cmd)
         for command in subcmd:
+            if command == "--env" or command == "--run" or command == "--expose" or command == "--port" or command == "--copy" or command == "--cmd":
+                sub.add_argument(
+                        command,
+                        action="append",
+                )
+                continue
+
             sub.add_argument(command)
+    
 
     result = parser.parse_args(args)
     return ParserContext(result)
