@@ -10,7 +10,7 @@ class ManagementCommand:
     def __init__(self, parser_context):
         ctx = parser_context.get_context()
 
-        self.command = ctx.get("commands")
+        self.command = ctx.get("command")
         self.optional_target = ctx.get("target")
 
     def get_command(self):
