@@ -9,7 +9,7 @@ class TestImages(unittest.TestCase):
         argv = [
                 "build", 
                 "--name=pyapp", 
-                "--run='pip install flask'", 
+                "--run=pip install flask", 
                 "--copy=./src/app",
                 "--workdir=/app",
                 "--expose=6060",
@@ -25,7 +25,7 @@ class TestImages(unittest.TestCase):
 
         self.assertEqual(img.get_image_name(), "pyapp")
         self.assertEqual(img.get_image_workdir(), "/app")
-        self.assertEqual(img.get_image_scripts(), ["'pip install flask'"])
+        self.assertEqual(img.get_image_scripts(), ["pip install flask"])
         self.assertEqual(img.get_image_cmds(), ["python app.py"])
         self.assertEqual(img.get_image_copy_targets(), ["./src/app"])
         self.assertEqual(img.get_image_ports(), ["6060"])
