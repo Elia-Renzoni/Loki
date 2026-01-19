@@ -22,9 +22,9 @@ def execute(command_obj):
         return create_image(command_obj)
 
     if isinstance(command_obj, containers.Containers):
-        return create_container(command_obj)
+        return run_container(command_obj)
 
-    return create_command(command_obj)
+    return run_management_command(command_obj)
 
 
 def create_image(cmd):
@@ -33,13 +33,13 @@ def create_image(cmd):
     return None
 
 
-def create_container(cmd):
+def run_container(cmd):
     """Execute container run command."""
     # TODO: implement container runtime logic
     return None
 
 
-def create_command(cmd):
+def run_management_command(cmd):
     """Execute management command."""
     # TODO: implement management command logic
     return None
