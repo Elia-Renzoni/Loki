@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Loki CLI entry point."""
 
 import os
