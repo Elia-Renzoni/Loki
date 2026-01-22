@@ -2,8 +2,7 @@
 
 from loki import images
 from loki import containers
-from loki import command
-
+from loki import mng_command
 
 def read_command(context):
     """Create the appropriate command object based on parsed context."""
@@ -13,8 +12,7 @@ def read_command(context):
     if context.get("run") is True:
         return containers.Containers(context)
 
-    return command.ManagementCommand(context)
-
+    return mng_command.ManagementCommand(context)
 
 def execute(command_obj):
     """Execute the given command object."""

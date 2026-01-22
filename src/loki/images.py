@@ -1,9 +1,10 @@
 """Image build logic for Loki."""
 
 from loki import commands as cmds
+from loki import command as cmd
 
 
-class Image:
+class Image(cmd.Command):
     """Represents a container image build configuration."""
 
     def __init__(self, context):
@@ -18,7 +19,7 @@ class Image:
         self.image_ports = []
         self.image_cmds = []
 
-    def compile_image(self):
+    def compile(self):
         """Compile image configuration from CLI context."""
         for exp_cmd in self.expected_commands:
             key = exp_cmd.lstrip("-")
