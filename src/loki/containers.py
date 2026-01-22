@@ -1,9 +1,10 @@
 """Container runtime logic for Loki."""
 
 from loki import commands as cmds
+from loki import command as cmd
 
 
-class Containers:
+class Containers(cmd.Command):
     """Represents a container runtime configuration."""
 
     def __init__(self, context):
@@ -17,7 +18,7 @@ class Containers:
         self.container_name = None
         self.container_ports = []
 
-    def compile_container(self):
+    def compile(self):
         """Compile container configuration from CLI context."""
         for exp_cmd in self.expected_commands:
             key = exp_cmd.lstrip("-")

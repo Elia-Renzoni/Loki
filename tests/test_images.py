@@ -21,7 +21,7 @@ class TestImages(unittest.TestCase):
         print(context)
 
         img = images.Image(context.get_context())
-        img.compile_image()
+        img.compile()
 
         self.assertEqual(img.get_image_name(), "pyapp")
         self.assertEqual(img.get_image_workdir(), "/app")

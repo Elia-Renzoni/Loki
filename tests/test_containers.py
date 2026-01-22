@@ -20,7 +20,7 @@ class TestContainers(unittest.TestCase):
         print(context.get_context())
 
         container = cnt.Containers(context.get_context())
-        container.compile_container()
+        container.compile()
 
         self.assertEqual(container.get_container_name(), "mycnt")
         self.assertEqual(container.get_container_envs(), ["DB-HOST=localhost", "DB-PORT=5050"])
