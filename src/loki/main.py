@@ -16,10 +16,12 @@ def loki_start(argv=None):
     if context.is_context_none():
         os._exit(1)
 
-    command_handlers.read_command(context)
-    command_handlers.execute(context.get_context())
-
+    target = command_handlers.read_command(context)
+    target.compile()
+    try:
+        command_handlers.execute(target)
+    except:
+        os._exit(1)
 
 if __name__ == "__main__":
     loki_start(sys.argv[1:])
-
