@@ -38,6 +38,38 @@ def setup_database():
 def add_image(options):
     check_options(options)
     check_health()
+   
+    middleware.execute(
+            queries.INSERT_IMAGE,
+            (options.get_image_name(), options.get_image_workdir())
+    )
+
+    image_id = middleware.lastrowid
+
+    copy_target_tuples = [(target, image_id) for target in options.get_image_copy_targets()]
+    middleware.executemany(
+            queries.INSERT_COPY_TARGET,
+            copy_target_tuples,
+    )
+
+    cmd_tuples = [(cmd, image_id) for cmd in options.get_image_cmds()]
+    middleware.executemany(
+            queries.INSERT_CMD,
+            cmd_tuples,
+    )
+
+    port_tuples = [(port, image_id) for port in options.get_image_ports()]
+    middleware.executemany(
+            queries.INSERT_PORT,
+            port_tuples,
+    )
+
+    script_tuples = [(script, image_id) for script in options.get_image_scripts()]
+    middleware.executemany(
+            queries.INSERT_SCRIPT,
+            script_tuples,
+    )
+
 
 def add_container(options):
     check_options(options)
