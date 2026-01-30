@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS image (
 """
 
 SCRIPTS_TABLE = """
-CREATE TABLE IF NOT EXISTS scripts (
-    script       VARCHAR(255) NOT NULL,
+CREATE TABLE IF NOT EXISTS script (
+    script_code  VARCHAR(255) NOT NULL,
     image_id     INTEGER NOT NULL,
     FOREIGN KEY(image_id) REFERENCES image(image_id)
 );
@@ -47,6 +47,8 @@ CREATE TABLE IF NOT EXISTS port (
 
 CONTAINER_TABLE = """
 CREATE TABLE IF NOT EXISTS container (
+    container_id INTEGER PRIMARY KEY,
+    container_name VARCHAR(255) UNIQUE NOT NULL
 );
 """
 
@@ -83,3 +85,22 @@ FETCH_IMAGES = """
 health monitoring
 '''
 PING = "PRAGMA integrity_check;"
+
+
+'''
+pragmas
+'''
+
+MARK_AS_USED = """
+PRAGMA user_version = 1;
+"""
+
+IS_DB_USED = """
+PRAGMA user_version;
+"""
+
+
+'''
+insert definitions
+'''
+
