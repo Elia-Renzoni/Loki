@@ -2,6 +2,8 @@
 import sqlite3
 import os
 
+from loki import queries
+
 DB_PATH = "./db/loki.db"
 
 conn = sqlite3.connect(DB_PATH)
@@ -15,35 +17,13 @@ def setup_database():
         if middleware.fetchall():
             pass
     
-    image_table = """
-        CREATE TABLE image (
-            id INTEGER
-            name VARCHAR(255)
-            copy VARCHAR(255)
-            workdir VARCHAR(255)
-            PRIMARY KEY(id)
-        );
-    """
-
-    container_table = """
-        CREATE TABLE container (
-        )
-    """
-
-    scripts_table = """
-        CREATE TABLE script (
-        );
-    """
-
-    cmds_table = """
-        CREATE TABLE action (
-        );
-    """
-
-    middleware.execute(image_table)
-    middleware.execute(container_table)
-    middleware.execute(scripts_table)
-    middleware.execute(cmds_table)
+    middleware.execute(queries.IMAGE_TABLE)
+    middleware.execute(queries.CONTAINER_TABLE)
+    middleware.execute(queries.SCRIPTS_TABLE)
+    middleware.execute(queries.CMDS_TABLE)
+    middleware.execute(queries.COPY_TABLE)
+    middleware.execute(queries.PORTS_TABLE)
+    middleware.execute(queries.EVN_TABLE)
 
     if not middleware.fetchone():
         raise Exception("database setup failed")
@@ -62,9 +42,8 @@ def fetch_container():
 def fetch_image():
     check_health()
 
-PING = "PRAGMA integrity_check;"
 def check_health():
-    middleware.execute(PING)
+    middleware.execute(queries.PING)
     result = middleware.fetchone()[0]
     if result != "ok":
         raise Exception("database corrupted")
