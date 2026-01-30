@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS copy (
 PORTS_TABLE = """
 CREATE TABLE IF NOT EXISTS port (
     port         INTEGER NOT NULL,
-    image_id     INTEGER NOT NULL,
-    container_id INTEGER NOT NULL,
+    image_id     INTEGER,
+    container_id INTEGER,
     FOREIGN KEY(image_id) REFERENCES image(image_id),
     FOREIGN KEY(container_id) REFERENCES container(container_id)
 );
@@ -76,8 +76,6 @@ FROM container
 WHERE container = ?;
 """
 
-FETCH_IMAGES = """
-"""
 
 
 
@@ -104,3 +102,22 @@ PRAGMA user_version;
 insert definitions
 '''
 
+INSERT_IMAGE = """
+INSERT INTO image (name, workdir) VALUES (?, ?);
+"""
+
+INSERT_COPY_TARGET = """
+INSERT INTO copy (target, image_id) VALUES (?, ?);
+"""
+
+INSERT_CMD = """
+INSERT INTO cmd (cmd, image_id) VALUES (?, ?);
+"""
+
+INSERT_PORT = """
+INSERT INTO port (port, image_id) VALUES (?, ?);
+"""
+
+INSERT_SCRIPT = """
+INSERT INTO script (script_code, image_id) VALUES (?, ?);
+"""
