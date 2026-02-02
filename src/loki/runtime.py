@@ -17,4 +17,4 @@ class Image(Runtime):
         self.cmds = parsed_cmds
 
     def run(self):
-        name = self.cmds.get_image_name()
+        pass
