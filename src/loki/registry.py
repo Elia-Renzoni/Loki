@@ -70,7 +70,6 @@ def add_image(options):
             script_tuples,
     )
 
-
 def add_container(options):
     check_options(options)
     check_health()

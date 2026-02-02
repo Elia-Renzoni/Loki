@@ -5,7 +5,14 @@ from loki import cmd_parser as parser
 
 class TestRegistry(unittest.TestCase):
 
-    full_image_snapshot = """
+    _full_image_snapshot = """
+    SELECT image.name, image.workdir, script.script_code, copy.target, port.port, cmd.cmd
+    FROM image
+    LEFT JOIN script ON script.image_id = image.image_id
+    LEFT JOIN cmd ON cmd.image_id = image.image_id
+    LEFT JOIN copy ON copy.image_id = image.image_id
+    LEFT JOIN port ON port.image_id = image.image_id
+    WHERE image.name = ?;
     """
     
     def test_setup_database(self):
@@ -44,9 +51,26 @@ class TestRegistry(unittest.TestCase):
         img = images.Image(context.get_context())
         img.compile_image()
 
+        try:
+            registry.setup_database()
+        except RuntimeError as err:
+            self.fail(err)
+
         registry.add_image(img)
 
-        # TODO-> take a full snapshot and check the results with assert
+        registry.middleware.execute(self._full_image_snapshot, ("pyapp",))
+        rows = registry.middleware.fetchall()
+        self.assertGreater(len(rows), 0)
+        row = rows[0]  
+        name, workdir, script_code, copy_target, port, cmd = row
+
+        self.assertEqual(name, "pyapp")
+        self.assertEqual(workdir, "/app")
+        self.assertEqual(script_code, "pip install flask")
+        self.assertEqual(copy_target, "./src/app")
+        self.assertEqual(port, 6060)
+        self.assertEqual(cmd, "python app.py")
+            
 
 if __name__ == '__main__':
     unittest.main()
