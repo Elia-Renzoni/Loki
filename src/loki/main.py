@@ -7,6 +7,7 @@ import sys
 
 from loki import cmd_parser
 from loki import command_handlers
+from loki import registry
 
 
 def loki_start(argv=None):
@@ -14,6 +15,12 @@ def loki_start(argv=None):
     context = cmd_parser.parse_commands(argv)
 
     if context.is_context_none():
+        os._exit(1)
+
+    try:
+        registry.setup_database()
+    except Exception as e:
+        print(e)
         os._exit(1)
 
     target = command_handlers.read_command(context)
