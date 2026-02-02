@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check DCO
-        uses: stevegrunwell/action-dco@v1
+        uses: stevegrunwell/verify-dco-signoff@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
