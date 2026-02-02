@@ -100,11 +100,44 @@ def add_container(options):
                 port_tuples
         )
 
-def fetch_container():
+def fetch_container(container_name):
     check_health()
 
-def fetch_image():
+    # take a snaphost of all the stored containers
+    if container_name == "all":
+        middleware.execute(queries.FETCH_ALL_CONTAINERS)
+        return [dict(row) for row in middleware.fetchall()]
+
+    # take a snapshot of a specific container
+    middleware.execute(
+            queries.FETCH_CONTAINER,
+            container_name
+    )
+    rows = middleware.fetchall()
+    data = dict(rows[0])
+    data['timestamp'] = time_since(data['timestamp'])
+    return data
+
+def fetch_image(image_name):
     check_health()
+
+    if image_name is None:
+        raise Exception("empty paramether")
+
+    # take a snapshot of all the stored images
+    if image_name == "all":
+        middleware.execute(queries.FETCH_ALL_IMAGES)
+        return [dict(row) for row in middleware.fetchall()]
+
+    # take a snaphost of a specific image
+    middleware.execute(
+            queries.FETCH_IMAGE,
+            image_name
+    )
+    rows = middleware.fetchall()
+    data = dict(rows[0])
+    data['timestamp'] = time_since(data['timestamp'])
+    return data
 
 def check_health():
     middleware.execute(queries.PING)
@@ -115,3 +148,10 @@ def check_health():
 def check_options(options):
     if options is None:
         raise Exception("empty options")
+
+def calculate_size():
+    pass
+
+def time_since(latest_timestamp):
+    pass
+

@@ -7,7 +7,8 @@ IMAGE_TABLE = """
 CREATE TABLE IF NOT EXISTS image (
     image_id INTEGER PRIMARY KEY,
     name     VARCHAR(255) UNIQUE NOT NULL,
-    workdir  VARCHAR(255) NOT NULL
+    workdir  VARCHAR(255) NOT NULL,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP
 );
 """
 
@@ -49,7 +50,8 @@ CONTAINER_TABLE = """
 CREATE TABLE IF NOT EXISTS container (
     container_id    INTEGER PRIMARY KEY,
     container_name  VARCHAR(255) UNIQUE NOT NULL,
-    mount           VARCHAR(255) NOT NULL
+    mount           VARCHAR(255) NOT NULL,
+    timestamp       TEXT DEFAULT CURRENT_TIMESTAMP
 );
 """
 
@@ -64,31 +66,67 @@ CREATE TABLE IF NOT EXISTS env (
 '''
 select definitions
 '''
-
-CHECK_IMAGE_PRESENCE = """
-SELECT image_id AS image
+FETCH_ALL_IMAGES = """
+SELECT image.name, 
+       image.workdir, 
+       image.timestamp, 
+       script.script_code, 
+       copy.target, 
+       port.port, 
+       cmd.cmd
 FROM image
-WHERE name = ?;
+LEFT JOIN script ON script.image_id = image.image_id
+LEFT JOIN cmd ON cmd.image_id = image.image_id
+LEFT JOIN copy ON copy.image_id = image.image_id
+LEFT JOIN port ON port.image_id = image.image_id;
 """
 
-CHECK_CONTAINER_PRESENCE = """
-SELECT container_id AS container
+FETCH_IMAGE = """
+SELECT image.name, 
+       image.workdir, 
+       image.timestamp, 
+       script.script_code, 
+       copy.target, 
+       port.port, 
+       cmd.cmd
+FROM image
+LEFT JOIN script ON script.image_id = image.image_id
+LEFT JOIN cmd ON cmd.image_id = image.image_id
+LEFT JOIN copy ON copy.image_id = image.image_id
+LEFT JOIN port ON port.image_id = image.image_id
+WHERE image.name = ?;
+"""
+
+FETCH_CONTAINER = """
+SELECT container.name, 
+       container.mount, 
+       container.timestamp, 
+       port,port, 
+       env.env_map
 FROM container
-WHERE container = ?;
+LEFT JOIN port ON port.container_id = container.container_id
+LEFT JOIN env ON env.container_id = container.container_id
+WHERE container.name = ?;
 """
 
-
-
-
-'''
-health monitoring
-'''
-PING = "PRAGMA integrity_check;"
-
+FETCH_ALL_CONTAINERS = """
+SELECT container.name, 
+       container.mount, 
+       container.timestamp, 
+       port,port, 
+       env.env_map
+FROM container
+LEFT JOIN port ON port.container_id = container.container_id
+LEFT JOIN env ON env.container_id = container.container_id;
+"""
 
 '''
 pragmas
 '''
+
+PING = """
+PRAGMA integrity_check;
+"""
 
 MARK_AS_USED = """
 PRAGMA user_version = 1;
@@ -97,7 +135,6 @@ PRAGMA user_version = 1;
 IS_DB_USED = """
 PRAGMA user_version;
 """
-
 
 '''
 insert definitions
