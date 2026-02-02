@@ -104,7 +104,6 @@ class TestRegistry(unittest.TestCase):
 
         registry.add_container(container)
 
-
         registry.middleware.execute(self._full_container_snapshot, "mycnt")
         rows = registry.middleware.fetchall()
         self.assertGreater(len(rows), 0)
