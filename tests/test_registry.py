@@ -49,7 +49,7 @@ class TestRegistry(unittest.TestCase):
         print(context)
 
         img = images.Image(context.get_context())
-        img.compile_image()
+        img.compile()
 
         try:
             registry.setup_database()
