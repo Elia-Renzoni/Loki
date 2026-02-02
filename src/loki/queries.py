@@ -48,8 +48,8 @@ CREATE TABLE IF NOT EXISTS port (
 CONTAINER_TABLE = """
 CREATE TABLE IF NOT EXISTS container (
     container_id    INTEGER PRIMARY KEY,
-    container_name  VARCHAR(255) UNIQUE NOT NULL
-    container_mount VARCHAR(255) NOT NULL
+    container_name  VARCHAR(255) UNIQUE NOT NULL,
+    mount           VARCHAR(255) NOT NULL
 );
 """
 
