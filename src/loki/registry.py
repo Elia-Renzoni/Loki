@@ -74,6 +74,32 @@ def add_container(options):
     check_options(options)
     check_health()
 
+    middleware.execute(
+            queries.INSERT_CONTAINER,
+            (
+                options.get_container_name(), 
+                options.get_container_mount()
+            )
+    )
+
+    container_id = middleware.lastrowid
+
+    if options.get_container_envs() is not None:
+        env_tuples = [(env, container_id) for env in options.get_container_envs()]
+        middleware.executemany(
+                queries.INSERT_ENV_VARIABLE,
+                env_tuples
+        )
+
+
+    if options.get_container_ports() is not None:
+        port_tuples = [(port, container_id) for port in options.get_container_ports()]
+
+        middleware.executemany(
+                queries.INSERT_PORT_CONTAINER,
+                port_tuples
+        )
+
 def fetch_container():
     check_health()
 

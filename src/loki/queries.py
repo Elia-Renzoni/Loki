@@ -47,8 +47,9 @@ CREATE TABLE IF NOT EXISTS port (
 
 CONTAINER_TABLE = """
 CREATE TABLE IF NOT EXISTS container (
-    container_id INTEGER PRIMARY KEY,
-    container_name VARCHAR(255) UNIQUE NOT NULL
+    container_id    INTEGER PRIMARY KEY,
+    container_name  VARCHAR(255) UNIQUE NOT NULL
+    container_mount VARCHAR(255) NOT NULL
 );
 """
 
@@ -120,4 +121,16 @@ INSERT INTO port (port, image_id) VALUES (?, ?);
 
 INSERT_SCRIPT = """
 INSERT INTO script (script_code, image_id) VALUES (?, ?);
+"""
+
+INSERT_CONTAINER = """
+INSERT INTO container (container_name, container_mount) VALUES (?, ?);
+"""
+
+INSERT_ENV_VARIABLE = """
+INSERT INTO env (env_map, container_id) VALUES (?, ?);
+"""
+
+INSERT_PORT_CONTAINER = """
+INSERT INTO port (port, container_id) VALUES (?, ?);
 """

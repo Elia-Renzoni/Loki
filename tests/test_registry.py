@@ -2,6 +2,7 @@ import unittest
 from loki import registry
 from loki import images
 from loki import cmd_parser as parser
+from loki import containers as cnt
 
 class TestRegistry(unittest.TestCase):
 
@@ -13,6 +14,14 @@ class TestRegistry(unittest.TestCase):
     LEFT JOIN copy ON copy.image_id = image.image_id
     LEFT JOIN port ON port.image_id = image.image_id
     WHERE image.name = ?;
+    """
+
+    _full_container_snapshot = """
+    SELECT container.name, container.mount, port,port, env.env_map, 
+    FROM container
+    LEFT JOIN port ON port.container_id = container.container_id
+    LEFT JOIN env ON env.container_id = container.container_id
+    WHERE container.name = ?;
     """
     
     def test_setup_database(self):
@@ -71,6 +80,41 @@ class TestRegistry(unittest.TestCase):
         self.assertEqual(port, 6060)
         self.assertEqual(cmd, "python app.py")
             
+    def add_container(self):
+        argv = [
+                "run",
+                "--name=mycnt", 
+                "--env=DB-HOST=localhost",
+                "--env=DB-PORT=5050",
+                "--mount=/data",
+                "--port=8080:80",
+        ]
+
+        context = parser.parse_commands(argv)
+        self.assertEqual(context.is_context_none(), False)
+        print(context.get_context())
+
+        container = cnt.Containers(context.get_context())
+        container.compile()
+
+        try:
+            registry.setup_database()
+        except Exception as e:
+            self.fail(e)
+
+        registry.add_container(container)
+
+
+        registry.middleware.execute(self._full_container_snapshot, "mycnt")
+        rows = registry.middleware.fetchall()
+        self.assertGreater(len(rows), 0)
+        row = rows[0]  
+        name, mount, env, port = row
+
+        self.assertEqual(name, "mycnt")
+        self.assertEqual(mount, "/data")
+        self.assertEqual(port, "8080:80")
+        self.assertEqual(env, ["DB-HOST=localhost", "DB-PORT=5050"])
 
 if __name__ == '__main__':
     unittest.main()
