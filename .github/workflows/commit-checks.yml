@@ -1,0 +1,26 @@
+name: Commit Style Check
+
+on:
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+      - name: Install Commitlint
+        run: |
+          npm install -g @commitlint/cli @commitlint/config-conventional
+      - name: Lint commits
+        run: |
+          git fetch origin main
+          git log origin/main..HEAD --pretty=format:%s | commitlint
+
