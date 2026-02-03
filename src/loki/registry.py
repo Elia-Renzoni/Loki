@@ -7,6 +7,7 @@ from loki import queries
 DB_PATH = "loki.db"
 
 conn = sqlite3.connect(DB_PATH)
+conn.row_factory = sqlite3.Row
 middleware = conn.cursor()
 
 def setup_database():
@@ -111,12 +112,12 @@ def fetch_container(container_name):
     # take a snapshot of a specific container
     middleware.execute(
             queries.FETCH_CONTAINER,
-            container_name
+            (container_name,)
     )
     rows = middleware.fetchall()
     data = dict(rows[0])
     data['timestamp'] = time_since(data['timestamp'])
-    return data
+    return [data]
 
 def fetch_image(image_name):
     check_health()
@@ -132,12 +133,12 @@ def fetch_image(image_name):
     # take a snaphost of a specific image
     middleware.execute(
             queries.FETCH_IMAGE,
-            image_name
+            (image_name,)
     )
     rows = middleware.fetchall()
     data = dict(rows[0])
     data['timestamp'] = time_since(data['timestamp'])
-    return data
+    return [data]
 
 def check_health():
     middleware.execute(queries.PING)

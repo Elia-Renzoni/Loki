@@ -98,7 +98,7 @@ WHERE image.name = ?;
 """
 
 FETCH_CONTAINER = """
-SELECT container.name, 
+SELECT container.container_name, 
        container.mount, 
        container.timestamp, 
        port,port, 
@@ -110,7 +110,7 @@ WHERE container.name = ?;
 """
 
 FETCH_ALL_CONTAINERS = """
-SELECT container.name, 
+SELECT container.container_name, 
        container.mount, 
        container.timestamp, 
        port,port, 
@@ -161,7 +161,7 @@ INSERT INTO script (script_code, image_id) VALUES (?, ?);
 """
 
 INSERT_CONTAINER = """
-INSERT INTO container (container_name, container_mount) VALUES (?, ?);
+INSERT INTO container (container_name, mount) VALUES (?, ?);
 """
 
 INSERT_ENV_VARIABLE = """

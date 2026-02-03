@@ -115,5 +115,75 @@ class TestRegistry(unittest.TestCase):
         self.assertEqual(port, "8080:80")
         self.assertEqual(env, ["DB-HOST=localhost", "DB-PORT=5050"])
 
+    def test_fetch_image(self):
+        argv = [
+                "build", 
+                "--name=myImage", 
+                "--run=pip install flask", 
+                "--copy=./src/app",
+                "--workdir=/app",
+                "--expose=6060",
+                "--cmd=python app.py",
+        ]
+
+        context = parser.parse_commands(argv)
+        self.assertEqual(context.is_context_none(), False)
+        print(context)
+
+        img = images.Image(context.get_context())
+        img.compile()
+
+        try:
+            registry.setup_database()
+        except RuntimeError as err:
+            self.fail(err)
+
+        registry.add_image(img)
+
+        try:
+            results = registry.fetch_image("myImage")
+            for res in results:
+                self.assertEqual(res['name'], "myImage")
+                self.assertEqual(res['workdir'], "/app")
+                self.assertEqual(res['port'], 6060)
+                self.assertEqual(res['script_code'], "pip install flask")
+                self.assertEqual(res['cmd'], "python app.py")
+                self.assertEqual(res['target'], "./src/app")
+        except Exception as e:
+            self.fail(e)
+
+    def test_fetch_container(self):
+        argv = [
+                "run",
+                "--name=mycnt", 
+                "--env=DB-HOST=localhost",
+                "--env=DB-PORT=5050",
+                "--mount=/data",
+                "--port=8080:80",
+        ]
+
+        context = parser.parse_commands(argv)
+        self.assertEqual(context.is_context_none(), False)
+        print(context.get_context())
+
+        container = cnt.Containers(context.get_context())
+        container.compile()
+
+        try:
+            registry.setup_database()
+        except Exception as e:
+            self.fail(e)
+
+        registry.add_container(container)
+
+        try:
+            results = registry.fetch_container("all")
+            for res in results:
+                self.assertEqual(res['container_name'], "mycnt")
+                self.assertEqual(res['mount'], "/data")
+                pass
+        except Exception as e:
+            self.fail(e)
+
 if __name__ == '__main__':
     unittest.main()
