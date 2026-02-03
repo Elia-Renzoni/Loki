@@ -1,6 +1,9 @@
 
 import sqlite3
 import os
+from dataclasses import dataclass
+from datetime import datetime, timezone
+
 
 from loki import queries
 
@@ -107,7 +110,13 @@ def fetch_container(container_name):
     # take a snaphost of all the stored containers
     if container_name == "all":
         middleware.execute(queries.FETCH_ALL_CONTAINERS)
-        return [dict(row) for row in middleware.fetchall()]
+        rows = middleware.fetchall()
+        results = []
+        for row in rows:
+            data = dict(row)
+            data['timestamp'] = time_since(data['timestamp'])
+            results.append(data)
+        return results
 
     # take a snapshot of a specific container
     middleware.execute(
@@ -128,7 +137,13 @@ def fetch_image(image_name):
     # take a snapshot of all the stored images
     if image_name == "all":
         middleware.execute(queries.FETCH_ALL_IMAGES)
-        return [dict(row) for row in middleware.fetchall()]
+        rows = middleware.fetchall()
+        results = []
+        for row in rows:
+            data = dict(row)
+            data['timestamp'] = time_since(data['timestamp'])
+            results.append(data)
+        return results
 
     # take a snaphost of a specific image
     middleware.execute(
@@ -150,9 +165,30 @@ def check_options(options):
     if options is None:
         raise Exception("empty options")
 
+# TODO-> next patch
 def calculate_size():
     pass
 
-def time_since(latest_timestamp):
-    pass
+@dataclass(frozen=True)
+class TimeSince:
+    seconds: int
+    minutes: int
+    hours: int
+    days: int
 
+
+def time_since(latest_timestamp):
+    created = datetime.strptime(latest_timestamp, "%Y-%m-%d %H:%M:%S").replace(
+        tzinfo=timezone.utc
+    )
+    now = datetime.now(timezone.utc)
+
+    delta = now - created
+    total_seconds = int(delta.total_seconds())
+
+    return TimeSince(
+        seconds=total_seconds,
+        minutes=total_seconds // 60,
+        hours=total_seconds // 3600,
+        days=delta.days,
+    )

@@ -1,4 +1,5 @@
 import unittest
+import time
 from loki import registry
 from loki import images
 from loki import cmd_parser as parser
@@ -139,6 +140,7 @@ class TestRegistry(unittest.TestCase):
             self.fail(err)
 
         registry.add_image(img)
+        time.sleep(5)
 
         try:
             results = registry.fetch_image("myImage")
@@ -149,6 +151,7 @@ class TestRegistry(unittest.TestCase):
                 self.assertEqual(res['script_code'], "pip install flask")
                 self.assertEqual(res['cmd'], "python app.py")
                 self.assertEqual(res['target'], "./src/app")
+                self.assertGreaterEqual(res['timestamp'].seconds, 5)
         except Exception as e:
             self.fail(e)
 
@@ -175,13 +178,14 @@ class TestRegistry(unittest.TestCase):
             self.fail(e)
 
         registry.add_container(container)
+        time.sleep(5)
 
         try:
             results = registry.fetch_container("all")
             for res in results:
                 self.assertEqual(res['container_name'], "mycnt")
                 self.assertEqual(res['mount'], "/data")
-                pass
+                self.assertGreaterEqual(res['timestamp'].seconds, 5)
         except Exception as e:
             self.fail(e)
 
