@@ -1,5 +1,8 @@
 import os
 import subprocess
+import tarfile
+import io
+import hashlib
 
 from fuseoverlayfs import FuseOverlayFS
 
@@ -25,8 +28,6 @@ class ImageBuilder:
 
         # install alpine rootfs
         import urllib.request
-        import tarfile
-        import io
 
         with urllib.request.urlopen(self._runtime_alpine_rootfs) as resp:
             with tarfile.open(fileobj=io.BytesIO(resp.read()), mode="r:gz") as tar:
@@ -36,37 +37,31 @@ class ImageBuilder:
 
     def _build_image(self, parent):
         merge_dir = os.path.join(parent, "merge")
-        lower_dir = os.path.join(parent, "lower")
-        worker_dir = os.path.join(parent, "worker")
-        dirs = [merge_dir, lower_dir, worker_dir]
+        read_only_dir = os.path.join(parent, "lower")
+        write_only_dir = os.path.join(parent, "upper")
+        dirs = [merge_dir, read_only_dir, write_only_dir]
         for d in dirs:
             os.makedirs(d, exist_ok=True)
 
+        # virtual filesystem creation
         overlayfs = FuseOverlayFS.init()
         overlayfs.mount(  # pyright: ignore[reportCallIssue]
             mnt=merge_dir,
-            lowerdirs=lower_dir,
+            lowerdirs=read_only_dir,
             upperdir=parent,
-            workdir=worker_dir
+            workdir=write_only_dir
         )
 
-        self._fork_exec(
+        # execute all the RUN commands
+        self._execute(
                 self.cmds.get_image_scripts(),
                 merge_dir
         )
 
-        self._fork_exec(
-                self.cmds.get_image_copy_targets(),
-                merge_dir
-        )
+        snapshot = self._take_filesystem_snapshot(write_only_dir)
+        hashed_content = self._do_hash(snapshot)
 
-
-        self._fork_exec(
-                self.cmds.get_image_workdirs(),
-                merge_dir
-        )
-
-    def _fork_exec(self, commands, merged):
+    def _execute(self, commands, merged):
         subprocess.run(
            commands,
            check=True,
@@ -79,6 +74,16 @@ class ImageBuilder:
             preexec_fn=lambda: os.chroot(merged)
         )
 
-    def _checksum(self):
-        pass
+    def _take_filesystem_snapshot(self, dirty_dir):
+        snaphost = "snaphost.tar"
+        with tarfile.open(snaphost, "w:gz") as f:
+            f.add(dirty_dir, arcname=".")
+        return snaphost
+
+    def _do_hash(self, snapshot):
+        with tarfile.open(snapshot, "r:gz") as f:
+            pass
+
+    def _add_layers(self, hash_value, layer_id):
+       layout = {}
 
