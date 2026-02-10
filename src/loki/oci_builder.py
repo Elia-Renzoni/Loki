@@ -7,6 +7,7 @@ import platform
 
 from fuseoverlayfs import FuseOverlayFS
 from datetime import datetime, timezone
+from pathlib import Path
 
 class ImageBuilder:
     _runtime_root_dir = "/loki-runtime/"
@@ -15,7 +16,6 @@ class ImageBuilder:
     _runtime_alpine_rootfs_arm = ""
     _runtime_image_manifest = "manifest.json"
     _fs_layers = {}
-    _std_oci_spec = []
 
     def __init__(self, parsed_cmds):
         self.cmds = parsed_cmds
@@ -87,7 +87,7 @@ class ImageBuilder:
         # create the assigned workdir
         self._create_workdir(
                 self.cmds.get_image_workdir(),
-                write_only_dir,
+                merge_dir,
         )
         snapshot = self._take_filesystem_snapshot(write_only_dir)
         hashed_content = self._do_hash(snapshot)
@@ -109,8 +109,9 @@ class ImageBuilder:
     def _move_source_code(self, target, upperdir):
         pass
 
-    def _create_workdir(self, workdir, upperdir):
-        pass
+    def _create_workdir(self, workdir, merged):
+        path = Path(merged) / workdir.lstrip("/")
+        path.mkdir(parents=True, exist_ok=True)
 
     def _take_filesystem_snapshot(self, dirty_dir):
         snaphost = "snaphost.tar"
@@ -123,7 +124,6 @@ class ImageBuilder:
         with open(snapshot, "rb") as f:
             digest = hashlib.sha256(f.read()).hexdigest()
         return digest
-            
 
     def _add_layers(self, hash_value, layer_id):
         assert layer_id == "root_fs" or layer_id is None
