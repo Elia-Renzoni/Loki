@@ -106,7 +106,7 @@ class ImageBuilder:
             preexec_fn=lambda: os.chroot(merged)
         )
 
-    def _move_source_code(self, target, upperdir):
+    def _move_source_code(self, target, merged):
         pass
 
     def _create_workdir(self, workdir, merged):
