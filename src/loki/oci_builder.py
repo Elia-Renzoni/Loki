@@ -3,12 +3,16 @@ import subprocess
 import tarfile
 import io
 import hashlib
+import platform
 
 from fuseoverlayfs import FuseOverlayFS
+from datetime import datetime, timezone
 
 class ImageBuilder:
     _runtime_root_dir = "/loki-runtime/"
-    _runtime_alpine_rootfs = "https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
+    _runtime_alpine_rootfs_intel = "https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
+    _runtime_alpine_rootfs_amd = ""
+    _runtime_alpine_rootfs_arm = ""
     _runtime_image_manifest = "manifest.json"
     _fs_layers = {}
     _std_oci_spec = []
@@ -29,7 +33,16 @@ class ImageBuilder:
         # install alpine rootfs
         import urllib.request
 
-        with urllib.request.urlopen(self._runtime_alpine_rootfs) as resp:
+        rootfs_path: str = ""
+        match platform.architecture:
+            case "ARM":
+                rootfs_path = self._runtime_alpine_rootfs_arm
+            case "x86_64":
+                rootfs_path = self._runtime_alpine_rootfs_intel
+            case "amd":
+                rootfs_path = self._runtime_alpine_rootfs_amd
+
+        with urllib.request.urlopen(rootfs_path) as resp:
             with tarfile.open(fileobj=io.BytesIO(resp.read()), mode="r:gz") as tar:
                 tar.extractall(target_path)
 
@@ -52,6 +65,8 @@ class ImageBuilder:
             workdir=write_only_dir
         )
 
+        self._add_layers(None, None)
+
         # execute all the RUN commands
         self._execute(
                 self.cmds.get_image_scripts(),
@@ -60,6 +75,23 @@ class ImageBuilder:
 
         snapshot = self._take_filesystem_snapshot(write_only_dir)
         hashed_content = self._do_hash(snapshot)
+        self._add_layers(hashed_content, "root_fs")
+
+        # copy source code into the mounted distro
+        for target in self.cmds.get_image_copy_targets():
+            self._move_source_code(target, write_only_dir)
+            snapshot = self._take_filesystem_snapshot(write_only_dir)
+            hashed_content = self._do_hash(snapshot)
+            self._add_layers(hashed_content, "root_fs")
+
+        # create the assigned workdir
+        self._create_workdir(
+                self.cmds.get_image_workdir(),
+                write_only_dir,
+        )
+        snapshot = self._take_filesystem_snapshot(write_only_dir)
+        hashed_content = self._do_hash(snapshot)
+        self._add_layers(hashed_content, "root_fs")
 
     def _execute(self, commands, merged):
         subprocess.run(
@@ -73,6 +105,12 @@ class ImageBuilder:
             },
             preexec_fn=lambda: os.chroot(merged)
         )
+
+    def _move_source_code(self, target, upperdir):
+        pass
+
+    def _create_workdir(self, workdir, upperdir):
+        pass
 
     def _take_filesystem_snapshot(self, dirty_dir):
         snaphost = "snaphost.tar"
@@ -88,5 +126,20 @@ class ImageBuilder:
             
 
     def _add_layers(self, hash_value, layer_id):
-       layout = {}
+        assert layer_id == "root_fs" or layer_id is None
 
+        if layer_id == "root_fs":
+            if self._fs_layers["root_fs"] is None:
+                self._fs_layers[layer_id] = {}
+                self._fs_layers["diff_fs"] = [hash_value]
+                self._fs_layers["type"] = "layers"
+            else:
+                self._fs_layers["diff_fs"] = hash_value
+
+            return
+
+        self._fs_layers["created"] = datetime. now(timezone.utc).isoformat().replace('+00:00', 'Z')
+
+        self._fs_layers["architecture"] = "amd64"
+        self._fs_layers["os"] = "linux"
+    
