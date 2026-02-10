@@ -81,8 +81,11 @@ class ImageBuilder:
         return snaphost
 
     def _do_hash(self, snapshot):
-        with tarfile.open(snapshot, "r:gz") as f:
-            pass
+        digest = None
+        with open(snapshot, "rb") as f:
+            digest = hashlib.sha256(f.read()).hexdigest()
+        return digest
+            
 
     def _add_layers(self, hash_value, layer_id):
        layout = {}
