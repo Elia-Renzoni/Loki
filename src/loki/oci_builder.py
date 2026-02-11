@@ -4,6 +4,7 @@ import tarfile
 import io
 import hashlib
 import platform
+import shutil
 
 from fuseoverlayfs import FuseOverlayFS
 from datetime import datetime, timezone
@@ -106,8 +107,8 @@ class ImageBuilder:
             preexec_fn=lambda: os.chroot(merged)
         )
 
-    def _move_source_code(self, target, merged):
-        pass
+    def _move_source_code(self, target, workdir):
+        shutil.copytree(target, workdir)
 
     def _create_workdir(self, workdir, merged):
         path = Path(merged) / workdir.lstrip("/")
