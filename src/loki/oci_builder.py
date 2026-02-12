@@ -140,7 +140,6 @@ class ImageBuilder:
             return
 
         self._fs_layers["created"] = datetime. now(timezone.utc).isoformat().replace('+00:00', 'Z')
-
-        self._fs_layers["architecture"] = "amd64"
+        self._fs_layers["architecture"] = platform.architecture
         self._fs_layers["os"] = "linux"
     
