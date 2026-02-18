@@ -5,6 +5,8 @@ import io
 import hashlib
 import platform
 import shutil
+import json
+from Enum import Enum
 
 from fuseoverlayfs import FuseOverlayFS
 from datetime import datetime, timezone
@@ -12,9 +14,8 @@ from pathlib import Path
 
 class ImageBuilder:
     _runtime_root_dir = "/loki-runtime/"
-    _runtime_alpine_rootfs_intel = "https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
-    _runtime_alpine_rootfs_amd = ""
-    _runtime_alpine_rootfs_arm = ""
+    _runtime_alpine_rootfs_base_url = "https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/"
+    _runtime_alpine_rootfs_x86 = "https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
     _runtime_image_manifest = "manifest.json"
     _fs_layers = {}
 
@@ -34,14 +35,26 @@ class ImageBuilder:
         # install alpine rootfs
         import urllib.request
 
-        rootfs_path: str = ""
-        match platform.architecture:
-            case "ARM":
-                rootfs_path = self._runtime_alpine_rootfs_arm
-            case "x86_64":
-                rootfs_path = self._runtime_alpine_rootfs_intel
-            case "amd":
-                rootfs_path = self._runtime_alpine_rootfs_amd
+        def url_composer(arch):
+            supported_archs = {
+                "x86_64": "alpine-minirootfs-3.20.0-x86_64.tar.gz",
+                "i386": "alpine-minirootfs-3.20.0-x86.tar.gz",
+                "i686": "alpine-minirootfs-3.20.0-x86.tar.gz",
+                "aarch64": "alpine-minirootfs-3.20.0-aarch64.tar.gz",
+                "armv7l": "alpine-minirootfs-3.20.0-armv7.tar.gz",
+                "armv6l": "alpine-minirootfs-3.20.0-armhf.tar.gz",
+            }
+
+            tar_file = supported_archs[arch]
+            if tar_file is None:
+                raise RuntimeError("unsopported CPU architecture")
+
+            return f"https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{arch}/{tar_file}"
+
+        try:
+            rootfs_path = url_composer(platform.machine())
+        except Exception as e:
+           raise e
 
         with urllib.request.urlopen(rootfs_path) as resp:
             with tarfile.open(fileobj=io.BytesIO(resp.read()), mode="r:gz") as tar:
@@ -93,6 +106,10 @@ class ImageBuilder:
         snapshot = self._take_filesystem_snapshot(write_only_dir)
         hashed_content = self._do_hash(snapshot)
         self._add_layers(hashed_content, "root_fs")
+        
+
+        # transorm map
+        self._do_flush()
 
     def _execute(self, commands, merged):
         subprocess.run(
@@ -126,6 +143,14 @@ class ImageBuilder:
             digest = hashlib.sha256(f.read()).hexdigest()
         return digest
 
+    class ImageJSONFields(Enum):
+        ROOT_FS = "root_fs",
+        DIFF_FS = "diff_fs"
+        TYPE = "type",
+        ARCH = "architecture"
+        DATE = "created"
+        OPERATING_SYSTEM = "os"
+
     def _add_layers(self, hash_value, layer_id):
         assert layer_id == "root_fs" or layer_id is None
 
@@ -142,4 +167,7 @@ class ImageBuilder:
         self._fs_layers["created"] = datetime. now(timezone.utc).isoformat().replace('+00:00', 'Z')
         self._fs_layers["architecture"] = platform.architecture
         self._fs_layers["os"] = "linux"
+
+    def _do_flush(self):
+        json.dumps(self._fs_layers)
     
