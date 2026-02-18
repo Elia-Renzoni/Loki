@@ -6,7 +6,7 @@ import hashlib
 import platform
 import shutil
 import json
-from Enum import Enum
+from enum import Enum
 
 from fuseoverlayfs import FuseOverlayFS
 from datetime import datetime, timezone
@@ -144,29 +144,29 @@ class ImageBuilder:
         return digest
 
     class ImageJSONFields(Enum):
-        ROOT_FS = "root_fs",
+        ROOT_FS = "root_fs"
         DIFF_FS = "diff_fs"
-        TYPE = "type",
+        TYPE = "type"
         ARCH = "architecture"
         DATE = "created"
         OPERATING_SYSTEM = "os"
 
     def _add_layers(self, hash_value, layer_id):
-        assert layer_id == "root_fs" or layer_id is None
+        assert layer_id == self.ImageJSONFields.ROOT_FS or layer_id is None
 
-        if layer_id == "root_fs":
-            if self._fs_layers["root_fs"] is None:
+        if layer_id == self.ImageJSONFields.ROOT_FS:
+            if self._fs_layers[self.ImageJSONFields.ROOT_FS] is None:
                 self._fs_layers[layer_id] = {}
-                self._fs_layers["diff_fs"] = [hash_value]
-                self._fs_layers["type"] = "layers"
+                self._fs_layers[self.ImageJSONFields.DIFF_FS] = [hash_value]
+                self._fs_layers[self.ImageJSONFields.TYPE] = "layer"
             else:
-                self._fs_layers["diff_fs"] = hash_value
+                self._fs_layers[self.ImageJSONFields.DIFF_FS] = hash_value
 
             return
 
-        self._fs_layers["created"] = datetime. now(timezone.utc).isoformat().replace('+00:00', 'Z')
-        self._fs_layers["architecture"] = platform.architecture
-        self._fs_layers["os"] = "linux"
+        self._fs_layers[self.ImageJSONFields.DATE] = datetime. now(timezone.utc).isoformat().replace('+00:00', 'Z')
+        self._fs_layers[self.ImageJSONFields.ARCH] = platform.architecture
+        self._fs_layers[self.ImageJSONFields.OPERATING_SYSTEM] = "linux"
 
     def _do_flush(self):
         json.dumps(self._fs_layers)
