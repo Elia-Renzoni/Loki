@@ -17,10 +17,10 @@ class ImageBuilder:
     _runtime_alpine_rootfs_base_url = "https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/"
     _runtime_alpine_rootfs_x86 = "https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
     _runtime_image_manifest = "manifest.json"
-    _fs_layers = {}
 
     def __init__(self, parsed_cmds):
         self.cmds = parsed_cmds
+        self._fs_layers = {}
 
     def run(self):
         self._init_workspace()
