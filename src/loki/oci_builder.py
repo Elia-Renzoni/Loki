@@ -6,6 +6,7 @@ import hashlib
 import platform
 import shutil
 import json
+import tempfile
 from enum import Enum
 
 from fuseoverlayfs import FuseOverlayFS
@@ -45,20 +46,17 @@ class ImageBuilder:
                 "armv6l": "alpine-minirootfs-3.20.0-armhf.tar.gz",
             }
 
-            tar_file = supported_archs[arch]
+            tar_file = supported_archs.get(arch)
             if tar_file is None:
-                raise RuntimeError("unsopported CPU architecture")
+                raise RuntimeError("unsupported CPU architecture")
 
             return f"https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{arch}/{tar_file}"
 
-        try:
-            rootfs_path = url_composer(platform.machine())
-        except Exception as e:
-           raise e
+        rootfs_path = url_composer(platform.machine())
 
         with urllib.request.urlopen(rootfs_path) as resp:
             with tarfile.open(fileobj=io.BytesIO(resp.read()), mode="r:gz") as tar:
-                tar.extractall(target_path)
+                self._safe_extract(tar, target_path)
 
         self._build_image(target_path)
 
@@ -75,70 +73,88 @@ class ImageBuilder:
         overlayfs.mount(  # pyright: ignore[reportCallIssue]
             mnt=merge_dir,
             lowerdirs=read_only_dir,
-            upperdir=parent,
+            upperdir=write_only_dir,
             workdir=write_only_dir
         )
 
-        self._add_layers(None, None)
+        try:
+            self._add_layers(None, None)
 
-        # execute all the RUN commands
-        self._execute(
+            # execute all the RUN commands
+            self._execute(
                 self.cmds.get_image_scripts(),
                 merge_dir
-        )
+            )
 
-        snapshot = self._take_filesystem_snapshot(write_only_dir)
-        hashed_content = self._do_hash(snapshot)
-        self._add_layers(hashed_content, "root_fs")
-
-        # copy source code into the mounted distro
-        for target in self.cmds.get_image_copy_targets():
-            self._move_source_code(target, write_only_dir)
             snapshot = self._take_filesystem_snapshot(write_only_dir)
             hashed_content = self._do_hash(snapshot)
             self._add_layers(hashed_content, "root_fs")
 
-        # create the assigned workdir
-        self._create_workdir(
+            # copy source code into the mounted distro
+            for target in self.cmds.get_image_copy_targets():
+                self._move_source_code(target, write_only_dir)
+                snapshot = self._take_filesystem_snapshot(write_only_dir)
+                hashed_content = self._do_hash(snapshot)
+                self._add_layers(hashed_content, "root_fs")
+
+            # create the assigned workdir
+            self._create_workdir(
                 self.cmds.get_image_workdir(),
                 merge_dir,
-        )
-        snapshot = self._take_filesystem_snapshot(write_only_dir)
-        hashed_content = self._do_hash(snapshot)
-        self._add_layers(hashed_content, "root_fs")
-        
+            )
+            snapshot = self._take_filesystem_snapshot(write_only_dir)
+            hashed_content = self._do_hash(snapshot)
+            self._add_layers(hashed_content, "root_fs")
 
-        # transorm map
-        self._do_flush()
+            # transform map
+            self._do_flush()
+        finally:
+            overlayfs.unmount(mnt=merge_dir)  # pyright: ignore[reportCallIssue]
 
     def _execute(self, commands, merged):
-        subprocess.run(
-           commands,
-           check=True,
-           cwd="/",
-           env={
-                "PATH": "/bin:/usr/bin:/sbin:/usr/sbin",
-                "HOME": "/root",
-                "TERM": "xterm",
-            },
-            preexec_fn=lambda: os.chroot(merged)
-        )
+        for cmd in commands:
+            if isinstance(cmd, str):
+                subprocess.run(
+                    cmd,
+                    check=True,
+                    cwd="/",
+                    env={
+                        "PATH": "/bin:/usr/bin:/sbin:/usr/sbin",
+                        "HOME": "/root",
+                        "TERM": "xterm",
+                    },
+                    preexec_fn=lambda: os.chroot(merged),
+                    shell=True,
+                )
+            else:
+                subprocess.run(
+                    cmd,
+                    check=True,
+                    cwd="/",
+                    env={
+                        "PATH": "/bin:/usr/bin:/sbin:/usr/sbin",
+                        "HOME": "/root",
+                        "TERM": "xterm",
+                    },
+                    preexec_fn=lambda: os.chroot(merged),
+                )
 
     def _move_source_code(self, target, workdir):
-        shutil.copytree(target, workdir)
+        dst = os.path.join(workdir, os.path.basename(target))
+        shutil.copytree(target, dst, dirs_exist_ok=True)
 
     def _create_workdir(self, workdir, merged):
         path = Path(merged) / workdir.lstrip("/")
         path.mkdir(parents=True, exist_ok=True)
 
     def _take_filesystem_snapshot(self, dirty_dir):
-        snaphost = "snaphost.tar"
-        with tarfile.open(snaphost, "w:gz") as f:
+        fd, snapshot_path = tempfile.mkstemp(prefix="snapshot-", suffix=".tar.gz")
+        os.close(fd)
+        with tarfile.open(snapshot_path, "w:gz") as f:
             f.add(dirty_dir, arcname=".")
-        return snaphost
+        return snapshot_path
 
     def _do_hash(self, snapshot):
-        digest = None
         with open(snapshot, "rb") as f:
             digest = hashlib.sha256(f.read()).hexdigest()
         return digest
@@ -152,22 +168,29 @@ class ImageBuilder:
         OPERATING_SYSTEM = "os"
 
     def _add_layers(self, hash_value, layer_id):
-        assert layer_id == self.ImageJSONFields.ROOT_FS or layer_id is None
+        assert layer_id == self.ImageJSONFields.ROOT_FS.value or layer_id is None
 
-        if layer_id == self.ImageJSONFields.ROOT_FS:
-            if self._fs_layers[self.ImageJSONFields.ROOT_FS] is None:
-                self._fs_layers[layer_id] = {}
+        if layer_id == self.ImageJSONFields.ROOT_FS.value:
+            if self.ImageJSONFields.ROOT_FS not in self._fs_layers:
+                self._fs_layers[self.ImageJSONFields.ROOT_FS] = {}
                 self._fs_layers[self.ImageJSONFields.DIFF_FS] = [hash_value]
                 self._fs_layers[self.ImageJSONFields.TYPE] = "layer"
             else:
-                self._fs_layers[self.ImageJSONFields.DIFF_FS] = hash_value
+                self._fs_layers[self.ImageJSONFields.DIFF_FS].append(hash_value)
 
             return
 
-        self._fs_layers[self.ImageJSONFields.DATE] = datetime. now(timezone.utc).isoformat().replace('+00:00', 'Z')
-        self._fs_layers[self.ImageJSONFields.ARCH] = platform.architecture
+        self._fs_layers[self.ImageJSONFields.DATE] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self._fs_layers[self.ImageJSONFields.ARCH] = platform.machine()
         self._fs_layers[self.ImageJSONFields.OPERATING_SYSTEM] = "linux"
 
     def _do_flush(self):
-        json.dumps(self._fs_layers)
-    
+        with open(self._runtime_image_manifest, "w", encoding="utf-8") as f:
+            json.dump(self._fs_layers, f)
+
+    def _safe_extract(self, tar, path):
+        for member in tar.getmembers():
+            member_path = os.path.join(path, member.name)
+            if not os.path.realpath(member_path).startswith(os.path.realpath(path) + os.sep):
+                raise RuntimeError("tar path traversal detected")
+        tar.extractall(path)
