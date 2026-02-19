@@ -4,6 +4,7 @@ from loki import images
 from loki import containers
 from loki import mng_command
 from loki import registry
+from loki import oci_builder as builder
 
 def read_command(context):
     """Create the appropriate command object based on parsed context."""
@@ -28,9 +29,9 @@ def execute(command_obj):
 
 def create_image(cmd):
     """Execute image build command."""
-    # TODO: implement image build logic
     registry.add_image(cmd)
-    return None
+    img = builder.ImageBuilder(cmd)
+    return img.run()
 
 
 def run_container(cmd):
