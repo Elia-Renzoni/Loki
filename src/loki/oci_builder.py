@@ -15,8 +15,6 @@ from pathlib import Path
 
 class ImageBuilder:
     _runtime_root_dir = "/loki-runtime/"
-    _runtime_alpine_rootfs_base_url = "https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/"
-    _runtime_alpine_rootfs_x86 = "https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/alpine-minirootfs-3.19.1-x86_64.tar.gz"
     _runtime_image_manifest = "manifest.json"
 
     def __init__(self, parsed_cmds):
@@ -78,7 +76,7 @@ class ImageBuilder:
         )
 
         try:
-            self._add_layers(None, None)
+            self._add_layers(None, None, None)
 
             # execute all the RUN commands
             self._execute(
@@ -88,14 +86,22 @@ class ImageBuilder:
 
             snapshot = self._take_filesystem_snapshot(write_only_dir)
             hashed_content = self._do_hash(snapshot)
-            self._add_layers(hashed_content, "root_fs")
+            self._add_layers(
+                    hashed_content,
+                    "root_fs",
+                    self.cmds.get_image_scripts(),
+            )
 
             # copy source code into the mounted distro
             for target in self.cmds.get_image_copy_targets():
                 self._move_source_code(target, write_only_dir)
                 snapshot = self._take_filesystem_snapshot(write_only_dir)
                 hashed_content = self._do_hash(snapshot)
-                self._add_layers(hashed_content, "root_fs")
+                self._add_layers(
+                        hashed_content, 
+                        "root_fs",
+                        self.cmds.get_image_copy_targets(),
+                )
 
             # create the assigned workdir
             self._create_workdir(
@@ -104,7 +110,11 @@ class ImageBuilder:
             )
             snapshot = self._take_filesystem_snapshot(write_only_dir)
             hashed_content = self._do_hash(snapshot)
-            self._add_layers(hashed_content, "root_fs")
+            self._add_layers(
+                    hashed_content, 
+                    "root_fs",
+                    self.cmds.get_image_workdir(),
+            )
 
             # transform map
             self._do_flush()
@@ -162,12 +172,13 @@ class ImageBuilder:
     class ImageJSONFields(Enum):
         ROOT_FS = "root_fs"
         DIFF_FS = "diff_fs"
+        HISTORY= "history"
         TYPE = "type"
         ARCH = "architecture"
         DATE = "created"
         OPERATING_SYSTEM = "os"
 
-    def _add_layers(self, hash_value, layer_id):
+    def _add_layers(self, hash_value, layer_id, commands):
         assert layer_id == self.ImageJSONFields.ROOT_FS.value or layer_id is None
 
         if layer_id == self.ImageJSONFields.ROOT_FS.value:
@@ -179,6 +190,18 @@ class ImageBuilder:
                 self._fs_layers[self.ImageJSONFields.DIFF_FS].append(hash_value)
 
             return
+
+        if layer_id == self.ImageJSONFields.HISTORY.value:
+            if self.ImageJSONFields.HISTORY not in self._fs_layers:
+                self._fs_layers[self.ImageJSONFields.HISTORY] = []
+            else:
+                for cmd in commands:
+                    entry = {
+                            "created": datetime.now(timezone.utc).isoformat(),
+                            "created_by": cmd,
+                    }
+                    self._fs_layers[self.ImageJSONFields.HISTORY] = entry
+                return
 
         self._fs_layers[self.ImageJSONFields.DATE] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         self._fs_layers[self.ImageJSONFields.ARCH] = platform.machine()
