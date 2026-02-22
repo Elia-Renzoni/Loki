@@ -24,7 +24,9 @@ class TestImageBuilder(unittest.TestCase):
         b = builder.ImageBuilder(img)
         b.run()
 
-        # check OCI-compliant JSON files
+        # TODO-> test:
+        # 1. Load JSON file.
+        # 2. check the existence of the layers.
 
 if __name__ == "__main__":
     unittest.main()
