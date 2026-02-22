@@ -89,8 +89,10 @@ class ImageBuilder:
             self._add_layers(
                     hashed_content,
                     "root_fs",
-                    self.cmds.get_image_scripts(),
+                    None,
             )
+
+            self._add_layers(None, "history", self.cmds.get_image_scripts())
 
             # copy source code into the mounted distro
             for target in self.cmds.get_image_copy_targets():
@@ -100,8 +102,10 @@ class ImageBuilder:
                 self._add_layers(
                         hashed_content, 
                         "root_fs",
-                        self.cmds.get_image_copy_targets(),
+                        None,
                 )
+
+                self._add_layers(None, "history", self.cmds.get_image_copy_targets())
 
             # create the assigned workdir
             self._create_workdir(
@@ -113,8 +117,10 @@ class ImageBuilder:
             self._add_layers(
                     hashed_content, 
                     "root_fs",
-                    self.cmds.get_image_workdir(),
+                    None,
             )
+
+            self._add_layers(None, "history", self.cmds.get_image_workdir())
 
             # transform map
             self._do_flush()
@@ -200,7 +206,7 @@ class ImageBuilder:
                             "created": datetime.now(timezone.utc).isoformat(),
                             "created_by": cmd,
                     }
-                    self._fs_layers[self.ImageJSONFields.HISTORY] = entry
+                    self._fs_layers[self.ImageJSONFields.HISTORY].append(entry)
                 return
 
         self._fs_layers[self.ImageJSONFields.DATE] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
