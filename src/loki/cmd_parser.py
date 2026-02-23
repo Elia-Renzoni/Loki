@@ -13,11 +13,11 @@ from loki import commands
 class ParserContext:
     """Wrapper around argparse Namespace."""
 
-    def __init__(self, namespace):
+    def __init__(self, namespace) -> None:
         """Initialize parser context from argparse namespace."""
         self.context = vars(namespace)
 
-    def is_context_none(self):
+    def is_context_none(self) -> bool:
         """Return True if context is empty."""
         return not self.context
 
@@ -26,7 +26,7 @@ class ParserContext:
         return self.context
 
 
-def parse_commands(args):
+def parse_commands(args) -> ParserContext:
     """
     Parse CLI arguments and return a ParserContext instance.
     """

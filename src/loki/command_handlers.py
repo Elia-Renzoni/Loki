@@ -6,7 +6,7 @@ from loki import mng_command
 from loki import registry
 from loki import oci_builder as builder
 
-def read_command(context):
+def read_command(context) -> (images.Image | containers.Containers | mng_command.ManagementCommand):
     """Create the appropriate command object based on parsed context."""
     if context.get("build") is True:
         return images.Image(context)
@@ -16,7 +16,7 @@ def read_command(context):
 
     return mng_command.ManagementCommand(context)
 
-def execute(command_obj):
+def execute(command_obj) -> None:
     """Execute the given command object."""
     if isinstance(command_obj, images.Image):
         return create_image(command_obj)
@@ -27,20 +27,20 @@ def execute(command_obj):
     return run_management_command(command_obj)
 
 
-def create_image(cmd):
+def create_image(cmd) -> None:
     """Execute image build command."""
     registry.add_image(cmd)
     img = builder.ImageBuilder(cmd)
     return img.run()
 
 
-def run_container(cmd):
+def run_container(cmd) -> None:
     """Execute container run command."""
     # TODO: implement container runtime logic
     return None
 
 
-def run_management_command(cmd):
+def run_management_command(cmd) -> None:
     """Execute management command."""
     # TODO: implement management command logic
     return None

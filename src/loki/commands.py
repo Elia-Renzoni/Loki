@@ -14,7 +14,7 @@ def build_commands_lookup():
     }
 
 
-def get_build_subcommands():
+def get_build_subcommands() -> list[str]:
     """Return supported subcommands for the build command."""
     return [
         "--name",
@@ -26,7 +26,7 @@ def get_build_subcommands():
     ]
 
 
-def get_run_subcommands():
+def get_run_subcommands() -> list[str]:
     """Return supported subcommands for the run command."""
     return [
         "--name",
