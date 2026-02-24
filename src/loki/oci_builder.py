@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 class ImageBuilder:
-    _runtime_root_dir = "/loki-runtime/"
+    _runtime_root_dir = "loki-runtime"
     _runtime_image_manifest = "manifest.json"
 
     def __init__(self, parsed_cmds):
