@@ -36,21 +36,23 @@ class ImageBuilder:
 
         def url_composer(arch):
             supported_archs = {
-                "x86_64": "alpine-minirootfs-3.20.0-x86_64.tar.gz",
-                "i386": "alpine-minirootfs-3.20.0-x86.tar.gz",
-                "i686": "alpine-minirootfs-3.20.0-x86.tar.gz",
-                "aarch64": "alpine-minirootfs-3.20.0-aarch64.tar.gz",
-                "armv7l": "alpine-minirootfs-3.20.0-armv7.tar.gz",
-                "armv6l": "alpine-minirootfs-3.20.0-armhf.tar.gz",
+                "x86_64": "alpine-minirootfs-latest-x86_64.tar.gz",
+                "i386": "alpine-minirootfs-latest-x86.tar.gz",
+                "i686": "alpine-minirootfs-latest-x86.tar.gz",
+                "aarch64": "alpine-minirootfs-latest-aarch64.tar.gz",
+                "armv7l": "alpine-minirootfs-latest-armv7.tar.gz",
+                "armv6l": "alpine-minirootfs-latest-armhf.tar.gz",
             }
 
             tar_file = supported_archs.get(arch)
+            print(tar_file)
             if tar_file is None:
                 raise RuntimeError("unsupported CPU architecture")
 
             return f"https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{arch}/{tar_file}"
 
         rootfs_path = url_composer(platform.machine())
+        print(rootfs_path)
 
         with urllib.request.urlopen(rootfs_path) as resp:
             with tarfile.open(fileobj=io.BytesIO(resp.read()), mode="r:gz") as tar:
