@@ -7,6 +7,7 @@ import platform
 import shutil
 import json
 import tempfile
+import yaml
 from enum import Enum
 
 from fuseoverlayfs import FuseOverlayFS
@@ -14,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 class ImageBuilder:
-    _runtime_root_dir = "/loki-runtime/"
+    _runtime_root_dir = "loki-runtime"
     _runtime_image_manifest = "manifest.json"
 
     def __init__(self, parsed_cmds):
@@ -35,22 +36,27 @@ class ImageBuilder:
         import urllib.request
 
         def url_composer(arch):
-            supported_archs = {
-                "x86_64": "alpine-minirootfs-3.20.0-x86_64.tar.gz",
-                "i386": "alpine-minirootfs-3.20.0-x86.tar.gz",
-                "i686": "alpine-minirootfs-3.20.0-x86.tar.gz",
-                "aarch64": "alpine-minirootfs-3.20.0-aarch64.tar.gz",
-                "armv7l": "alpine-minirootfs-3.20.0-armv7.tar.gz",
-                "armv6l": "alpine-minirootfs-3.20.0-armhf.tar.gz",
+            transformer = {
+                "x86_64": "x86_64",
+                "aarch64": "aarch64",
+                "armv7l": "armv7",
+                "i686": "x86",
+                "i386": "x86",
+                "armv6l": "armhf",
             }
 
-            tar_file = supported_archs.get(arch)
-            if tar_file is None:
-                raise RuntimeError("unsupported CPU architecture")
+            arch  = transformer.get(arch)
+            release_container = f"https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{arch}/latest-releases.yaml"
 
-            return f"https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{arch}/{tar_file}"
+            with urllib.request.urlopen(release_container) as r:
+                releases = yaml.safe_load(r)
+            version = releases[0]['version']
+
+            tar_filename = f"alpine-minirootfs-{version}-{arch}.tar.gz"
+            return f"https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{arch}/{tar_filename}"
 
         rootfs_path = url_composer(platform.machine())
+        print(rootfs_path)
 
         with urllib.request.urlopen(rootfs_path) as resp:
             with tarfile.open(fileobj=io.BytesIO(resp.read()), mode="r:gz") as tar:
