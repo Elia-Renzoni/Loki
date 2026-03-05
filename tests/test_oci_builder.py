@@ -24,9 +24,10 @@ class TestImageBuilder(unittest.TestCase):
         b = builder.ImageBuilder(img)
         b.run()
 
-        # TODO-> test:
-        # 1. Load JSON file.
-        # 2. check the existence of the layers.
+        self.assertNotEqual(b._fs_layers["root_fs"], None)
+        print(b._fs_layers["root_fs"])
+        self.assertNotEqual(b._fs_layers["history"], None)
+        print(b._fs_layers["history"])
 
 if __name__ == "__main__":
     unittest.main()
